@@ -293,7 +293,7 @@ namespace kaldi {
 					}
 					int32 my_index = entries_.size(); // entries_对应所有phone的TopologyEntry
 					entries_.push_back(this_entry);
-					// 在同一个<TopologyEntry>...</TopologyEntry>中的所有phone共享同一个Entry，在entries_中只存储一次
+					// 在同一个<TopologyEntry_2D>...</TopologyEntry_2D>中的所有phone共享同一个Entry，在entries_中只存储一次
 					for (size_t i = 0; i < phones.size(); i++) {
 						int32 phone = phones[i]; // phones数组里面存储着<ForPhones>中读取出来的音素列表
 						if (static_cast<int32>(phone2idx_.size()) <= phone)
@@ -573,7 +573,7 @@ namespace kaldi {
 
 	int32 HmmTopology_2D::NumPdfClasses(int32 phone) const {
 		// will throw if phone not covered.
-		const TopologyEntry &entry = TopologyForPhone(phone);
+		const TopologyEntry_2D &entry = TopologyForPhone(phone);
 		int32 max_pdf_class = 0;
 		for (size_t i = 0; i < entry.size(); i++) {
 			max_pdf_class = std::max(max_pdf_class, entry[i].self_pdf_class);
@@ -583,7 +583,7 @@ namespace kaldi {
 
 	// TODO, this function has not been checked yet! Seems no use.
 	int32 HmmTopology_2D::MinLength(int32 phone) const {
-		const TopologyEntry &entry = TopologyForPhone(phone);
+		const TopologyEntry_2D &entry = TopologyForPhone(phone);
 		// min_length[state] gives the minimum length for sequences up to and
 		// including that state.
 		std::vector<int32> min_length(entry.size(),
