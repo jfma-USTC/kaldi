@@ -25,6 +25,7 @@ ifeq ("$(shell expr $(OPENFST_VER_NUM) \< 10600)","1")
             Supported versions: >= 1.6.0)
 endif
 
+# 'all' is a fake target, make <prerequisites> first 
 all: check_required_programs sph2pipe sclite openfst cub
 	@echo -e "\n\n"
 	@echo "Warning: IRSTLM is not installed by default anymore. If you need IRSTLM"

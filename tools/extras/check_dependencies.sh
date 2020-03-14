@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CXX=${CXX:-g++}
+CXX=${CXX:-g++}  # CXX is an implicit variable in GNU make, default ¡®g++¡¯
 status=0
 
 # at some point we could try to add packages for Cywgin or macports(?) to this
@@ -17,7 +17,7 @@ function add_packages {
 
 function have { type -t "$1" >/dev/null; }
 
-compiler_ver_info=$($CXX --version 2>/dev/null)
+compiler_ver_info=$($CXX --version 2>/dev/null)  # format like "g++ (GCC) 7.2.0" in unix sys with g++ as default compiler
 case $compiler_ver_info in
   "")
     echo "$0: Compiler '$CXX' is not installed."
@@ -26,8 +26,8 @@ case $compiler_ver_info in
     status=1
     ;;
   "g++ "* )
-    gcc_ver=$($CXX -dumpversion)
-    gcc_ver_num=$(echo $gcc_ver | sed 's/\./ /g' | xargs printf "%d%02d%02d")
+    gcc_ver=$($CXX -dumpversion)  # format like "7.2.0" in unix
+    gcc_ver_num=$(echo $gcc_ver | sed 's/\./ /g' | xargs printf "%d%02d%02d")  # xargs convert stdin to arguments
     if [ $gcc_ver_num -lt 40803 ]; then
         echo "$0: Compiler '$CXX' (g++-$gcc_ver) is not supported."
         echo "$0: You need g++ >= 4.8.3, Apple clang >= 5.0 or LLVM clang >= 3.3."
