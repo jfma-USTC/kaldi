@@ -72,7 +72,7 @@ namespace kaldi {
 					std::string token;
 					int32 rows;
 					int32 cols;
-					Topology_Shape this_shape;
+					TopologyEntryShape this_shape;
 					ReadToken(is, binary, &token);
 					if (token == "<Rows>"){
 						ReadBasicType(is, binary, &rows);
@@ -93,7 +93,7 @@ namespace kaldi {
 						ExpectToken(is, binary, "</Rows>");
 					}
 					else {
-						KALDI_ERR << "Reading Topology_Shape, no valdi input of <Cols> or <Rows> is found.";
+						KALDI_ERR << "Reading TopologyEntryShape, no valdi input of <Cols> or <Rows> is found.";
 					}
 					std::vector<HmmState_2D> this_entry; // 一个vector<HmmState_2D>对应到一个phone
 					
@@ -663,7 +663,7 @@ namespace kaldi {
 		return 0;
 	}
 
-	const HmmTopology_2D::Topology_Shape& HmmTopology_2D::TopologyShapeForPhone(int32 phone) const {  // Will throw if phone not covered.
+	const HmmTopology_2D::TopologyEntryShape& HmmTopology_2D::TopologyShapeForPhone(int32 phone) const {  // Will throw if phone not covered.
 		if (static_cast<size_t>(phone) >= phone2idx_.size() || phone2idx_[phone] == -1) {
 			KALDI_ERR << "TopologyShapeForPhone(), phone " << (phone) << " not covered.";
 		}
