@@ -271,6 +271,10 @@ namespace kaldi {
 		/// compare the transition probabilities.
 		bool Compatible(const TransitionModel_2D &other) const;
 
+		//返回由phone和hmm_state指定的trans_state
+		int32 PairToState(int32 phone, int32 hmm_state) const;
+
+
 	private:
 		void MleUpdateShared(const Vector<double> &stats,
 			const MleTransitionUpdateConfig &cfg,
@@ -334,6 +338,9 @@ namespace kaldi {
 		/// This is actually one plus the highest-numbered pdf we ever got back from the
 		/// tree (but the tree numbers pdfs contiguously from zero so this is the number of pdfs).
 		int32 num_pdfs_;
+		// Map phone to the index in tuples_ that [phone] first appear.
+		std::vector<int32> phone2tuples_index_;
+
 
 		KALDI_DISALLOW_COPY_AND_ASSIGN(TransitionModel_2D);
 	};

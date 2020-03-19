@@ -43,6 +43,7 @@ namespace kaldi {
 			phones_.clear();
 			phone2idx_.clear();
 			entries_.clear();
+			entries_shape_.clear();
 			std::string token;
 			// 此时文件指针位于第二行
 			while (!(is >> token).fail()) { // 从文件流提取字符串时， >> 遇空格、换行结束
@@ -68,8 +69,34 @@ namespace kaldi {
 						}
 					}
 					// 此处is指针应该在</ForPhone>的下一行
-					std::vector<HmmState_2D> this_entry; // 一个vector<HmmState_2D>对应到一个phone
 					std::string token;
+					int32 rows;
+					int32 cols;
+					Topology_Shape this_shape;
+					ReadToken(is, binary, &token);
+					if (token == "<Rows>"){
+						ReadBasicType(is, binary, &rows);
+						this_shape.state_rows = rows;
+						ExpectToken(is, binary, "</Rows>");
+						ExpectToken(is, binary, "<Cols>");
+						ReadBasicType(is, binary, &cols);
+						this_shape.state_cols = cols;
+						ExpectToken(is, binary, "</Cols>");
+					}
+					else if (token == "<Cols>") {
+						ReadBasicType(is, binary, &cols);
+						this_shape.state_cols = cols;
+						ExpectToken(is, binary, "</Cols>");
+						ExpectToken(is, binary, "<Rows>");
+						ReadBasicType(is, binary, &rows);
+						this_shape.state_rows = rows;
+						ExpectToken(is, binary, "</Rows>");
+					}
+					else {
+						KALDI_ERR << "Reading Topology_Shape, no valdi input of <Cols> or <Rows> is found.";
+					}
+					std::vector<HmmState_2D> this_entry; // 一个vector<HmmState_2D>对应到一个phone
+					
 					ReadToken(is, binary, &token); // 这里token字串中存放了'<TopDown>'或'<LeftRight>'
 					// 这一层while里面在读取<TopologyEntry_2D>中的信息（有哪些音素）
 					while (token != "</TopologyEntry_2D>") {
@@ -291,8 +318,9 @@ namespace kaldi {
 						}
 						ReadToken(is, binary, &token); // 这里token字串中存放了<TopDown>或<LeftRight>或</TopologyEntry_2D>
 					}
-					int32 my_index = entries_.size(); // entries_对应所有phone的TopologyEntry
+					int32 my_index = entries_.size(); // entries_对应所有phone的TopologyEntry_2D
 					entries_.push_back(this_entry);
+					entries_shape_.push_back(this_shape);
 					// 在同一个<TopologyEntry_2D>...</TopologyEntry_2D>中的所有phone共享同一个Entry，在entries_中只存储一次
 					for (size_t i = 0; i < phones.size(); i++) {
 						int32 phone = phones[i]; // phones数组里面存储着<ForPhones>中读取出来的音素列表
@@ -323,6 +351,8 @@ namespace kaldi {
 			entries_.resize(sz);
 			for (int32 i = 0; i < sz; i++) {
 				int32 thist_sz;
+				ReadBasicType(is, binary, &entries_shape_[i].state_rows);
+				ReadBasicType(is, binary, &entries_shape_[i].state_cols);
 				ReadBasicType(is, binary, &thist_sz);
 				entries_[i].resize(thist_sz);
 				for (int32 j = 0; j < thist_sz; j++) {
@@ -367,6 +397,14 @@ namespace kaldi {
 				}
 				os << "\n";
 				WriteToken(os, binary, "</ForPhones>");
+				os << "\n";
+				WriteToken(os, binary, "<Rows>");
+				os << "\n" << entries_shape_[i].state_rows << "\n";
+				WriteToken(os, binary, "</Rows>");
+				os << "\n";
+				WriteToken(os, binary, "<Cols>");
+				os << "\n" << entries_shape_[i].state_cols << "\n";
+				WriteToken(os, binary, "</Cols>");
 				os << "\n";
 				WriteToken(os, binary, "<TopDown>");
 				os << "\n";
@@ -436,6 +474,8 @@ namespace kaldi {
 			if (!is_hmm) WriteBasicType(os, binary, static_cast<int32>(-1)); 
 			WriteBasicType(os, binary, static_cast<int32>(entries_.size()));//写入entries_的个数（有几种不同的HMM结构）
 			for (size_t i = 0; i < entries_.size(); i++) {
+				WriteBasicType(os, binary, static_cast<int32>(entries_shape_[i].state_rows));//写入一个entry的state_rows
+				WriteBasicType(os, binary, static_cast<int32>(entries_shape_[i].state_cols));//写入一个entry的state_cols
 				WriteBasicType(os, binary, static_cast<int32>(entries_[i].size()));//写入一个entry的states个数
 				for (size_t j = 0; j < entries_[i].size(); j++) { //遍历当前entry的所有states,写入pdf和trans_pair
 					WriteBasicType(os, binary, entries_[i][j].forward_pdf_class);
@@ -622,5 +662,27 @@ namespace kaldi {
 		*/
 		return 0;
 	}
+
+	const HmmTopology_2D::Topology_Shape& HmmTopology_2D::TopologyShapeForPhone(int32 phone) const {  // Will throw if phone not covered.
+		if (static_cast<size_t>(phone) >= phone2idx_.size() || phone2idx_[phone] == -1) {
+			KALDI_ERR << "TopologyShapeForPhone(), phone " << (phone) << " not covered.";
+		}
+		return entries_shape_[phone2idx_[phone]];
+	}
+
+	int32 HmmTopology_2D::TopologyShapeRowsForPhone(int32 phone) const {  // Will throw if phone not covered.
+		if (static_cast<size_t>(phone) >= phone2idx_.size() || phone2idx_[phone] == -1) {
+			KALDI_ERR << "TopologyShapeForPhone(), phone " << (phone) << " not covered.";
+		}
+		return entries_shape_[phone2idx_[phone]].state_rows;
+	}
+
+	int32 HmmTopology_2D::TopologyShapeColsForPhone(int32 phone) const {  // Will throw if phone not covered.
+		if (static_cast<size_t>(phone) >= phone2idx_.size() || phone2idx_[phone] == -1) {
+			KALDI_ERR << "TopologyShapeForPhone(), phone " << (phone) << " not covered.";
+		}
+		return entries_shape_[phone2idx_[phone]].state_cols;
+	}
+
 
 } // End namespace kaldi

@@ -148,6 +148,15 @@ namespace kaldi {
 
 			HmmState_2D() : self_loop_pdf_class(-1) { }
 		};
+		struct Topology_Shape {
+			int32 state_rows;
+			int32 state_cols;
+			explicit Topology_Shape(int32 state_rows, int32 state_cols) {
+				KALDI_ASSERT(state_rows > 0 && state_cols > 0);
+				this->state_rows = state_rows;
+				this->state_cols = state_cols;
+			}
+		};
 
 		/// TopologyEntry is a typedef that represents the topology of
 		/// a single (prototype) state.
@@ -192,6 +201,10 @@ namespace kaldi {
 		// this phone: e.g. 3 for the normal HMM topology.
 		int32 MinLength(int32 phone) const;
 
+		const Topology_Shape &TopologyShapeForPhone(int32 phone) const;
+		int32 TopologyShapeRowsForPhone(int32 phone) const;
+		int32 TopologyShapeColsForPhone(int32 phone) const;
+
 		HmmTopology_2D() {}
 
 		bool operator == (const HmmTopology_2D &other) const {
@@ -204,6 +217,7 @@ namespace kaldi {
 									 //may discontinuous, like 0 1 3 6 9
 		std::vector<int32> phone2idx_;  // map from phones to indexes into the entries vector (or -1 for not present).
 		std::vector<TopologyEntry_2D> entries_;
+		std::vector<Topology_Shape> entries_shape_;
 	};
 
 

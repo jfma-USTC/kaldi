@@ -38,10 +38,12 @@ namespace kaldi {
 	void TransitionModel_2D::ComputeTuplesIsHmm() {
 		const std::vector<int32> &phones = topo_.GetPhones(); // 注意，这里的phones都是按升序排序好的
 		KALDI_ASSERT(!phones.empty());
-
+		int32 max_phone = phones.back();
+		phone2tuples_index_.Resize(max_phone + 1, -1);
 		int32 pdf = 0;
 		for (size_t i = 0; i < phones.size(); i++) {
 			int32 phone = phones[i];
+			phone2tuples_index_[phone] = static_cast<int32>(tuples_.size());
 			for (size_t hmm_state = 0; hmm_state < topo_.NumPdfClasses(phone); hmm_state++) {
 				tuples_.push_back(Tuple(phone, hmm_state, pdf, pdf));
 				pdf++;
@@ -1485,6 +1487,16 @@ namespace kaldi {
 		KALDI_ASSERT(static_cast<size_t>(hmm_state) < entry.size());
 		return (static_cast<size_t>(trans_index) < entry[hmm_state].transitions_left_right.size()
 			&& entry[hmm_state].transitions_left_right[trans_index].first == hmm_state);
+	}
+
+	// Phone should be in Topology_2D phones_ list, hmm_state should be 0-based
+	// tuple_index_ is 0-based, trans-state is 1-based.
+	int32 PairToState(int32 phone, int32 hmm_state) const {
+		if (phone >= phone2tuples_index_.size()) 
+			KALDI_ERR << "Phone "<< phone <<" exceed the range of index_vector.";
+		if (phone2tuples_index_[phone] == -1) 
+			KALDI_ERR << "Phone " << phone << " didn't contained in index_vector.";
+		return phone2tuples_index_[phone] + 1 + hmm_state;
 	}
 
 } // End namespace kaldi
