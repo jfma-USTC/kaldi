@@ -232,14 +232,22 @@ namespace kaldi {
 
 		/// Does Maximum Likelihood estimation.  The stats are counts/weights, indexed
 		/// by transition-id.  This was previously called Update().
-		void MleUpdate(const Vector<double> &stats,
+		void MleUpdate_TopDown(const Vector<double> &stats,
+			const MleTransitionUpdateConfig &cfg,
+			BaseFloat *objf_impr_out,
+			BaseFloat *count_out);
+		void MleUpdate_LeftRight(const Vector<double> &stats,
 			const MleTransitionUpdateConfig &cfg,
 			BaseFloat *objf_impr_out,
 			BaseFloat *count_out);
 
 		/// Does Maximum A Posteriori (MAP) estimation.  The stats are counts/weights,
 		/// indexed by transition-id.
-		void MapUpdate(const Vector<double> &stats,
+		void MapUpdate_TopDown(const Vector<double> &stats,
+			const MapTransitionUpdateConfig &cfg,
+			BaseFloat *objf_impr_out,
+			BaseFloat *count_out);
+		void MapUpdate_LeftRight(const Vector<double> &stats,
 			const MapTransitionUpdateConfig &cfg,
 			BaseFloat *objf_impr_out,
 			BaseFloat *count_out);
@@ -276,10 +284,16 @@ namespace kaldi {
 
 
 	private:
-		void MleUpdateShared(const Vector<double> &stats,
+		void MleUpdateShared_TopDown(const Vector<double> &stats,
 			const MleTransitionUpdateConfig &cfg,
+			BaseFloat *objf_impr_out,BaseFloat *count_out);
+		void MleUpdateShared_LeftRight(const Vector<double> &stats,
+			const MleTransitionUpdateConfig &cfg,
+			BaseFloat *objf_impr_out,BaseFloat *count_out);
+		void MapUpdateShared_TopDown(const Vector<double> &stats,
+			const MapTransitionUpdateConfig &cfg,
 			BaseFloat *objf_impr_out, BaseFloat *count_out);
-		void MapUpdateShared(const Vector<double> &stats,
+		void MapUpdateShared_LeftRight(const Vector<double> &stats,
 			const MapTransitionUpdateConfig &cfg,
 			BaseFloat *objf_impr_out, BaseFloat *count_out);
 		void ComputeTuples(const ContextDependencyInterface &ctx_dep);  // called from constructor.  initializes tuples_.
