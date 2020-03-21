@@ -20,7 +20,7 @@
 
 #include <vector>
 
-#include "hmm-topology-2D.h"
+#include "hmm/hmm-topology-2D.h"
 #include "util/text-utils.h"
 
 

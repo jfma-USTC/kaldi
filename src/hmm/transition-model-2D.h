@@ -24,7 +24,7 @@
 #include "base/kaldi-common.h"
 #include "util/const-integer-set.h"
 #include "fst/fst-decl.h" // forward declarations.
-#include "hmm-topology-2D.h"
+#include "hmm/hmm-topology-2D.h"
 #include "itf/options-itf.h"
 #include "itf/context-dep-itf.h"
 #include "matrix/kaldi-vector.h"

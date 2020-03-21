@@ -19,7 +19,7 @@
 // limitations under the License.
 
 #include <vector>
-#include "transition-model-2D.h"
+#include "hmm/transition-model-2D.h"
 #include "tree/context-dep.h"
 
 namespace kaldi {
