@@ -721,8 +721,8 @@ namespace kaldi {
 					// Commit updated values.
 					for (int32 tidx = 0; tidx < n; tidx++) {
 						int32 tid = PairToTransitionId_TopDown(tstate, tidx);
-						log_probs_(tid) = Log(new_probs(tidx)); // log_probs_存放的是转移概率的对数值
-						if (log_probs_(tid) - log_probs_(tid) != 0.0)
+						log_probs_top_down_(tid) = Log(new_probs(tidx)); // log_probs_存放的是转移概率的对数值
+						if (log_probs_top_down_(tid) - log_probs_top_down_(tid) != 0.0)
 							KALDI_ERR << "Log probs TopDown is inf or NaN: error in update or bad stats?";
 					}
 				}
@@ -785,8 +785,8 @@ namespace kaldi {
 					// Commit updated values.
 					for (int32 tidx = 0; tidx < n; tidx++) {
 						int32 tid = PairToTransitionId_LeftRight(tstate, tidx);
-						log_probs_(tid) = Log(new_probs(tidx)); // log_probs_存放的是转移概率的对数值
-						if (log_probs_(tid) - log_probs_(tid) != 0.0)
+						log_probs_left_right_(tid) = Log(new_probs(tidx)); // log_probs_存放的是转移概率的对数值
+						if (log_probs_left_right_(tid) - log_probs_left_right_(tid) != 0.0)
 							KALDI_ERR << "Log probs is inf or NaN: error in update or bad stats?";
 					}
 				}
