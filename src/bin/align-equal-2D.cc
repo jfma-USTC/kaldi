@@ -41,8 +41,8 @@ int main(int argc, char *argv[]) {
 			"Usage:  align-equal <model-in> <block-rspecifier> <transcriptions-rspecifier> "
 			"<alignments-wspecifier>\n"
 			"e.g.: \n"
-			" align-equal 0.mdl 'ark:sym2int.pl -f 2- words.txt text|'"
-			" ark:block ark,t:equal.ali\n";
+			" align-equal 0.mdl ark:block 'ark:sym2int.pl -f 2- words.txt text|'"
+			" ark,t:equal.ali\n";
 
 		ParseOptions po(usage);
 		//std::string disambig_rxfilename;
@@ -112,9 +112,9 @@ int main(int argc, char *argv[]) {
 				other_error++;
 				continue;
 			}
-			size_t block_row_num = static_cast<size_t>(block_info[1]),
-				  block_col_num = static_cast<size_t>(block_info[2]),
-				  block_tol_num = static_cast<size_t>(block_info[3]);
+			size_t block_row_num = static_cast<size_t>(block_info[0]),
+				  block_col_num = static_cast<size_t>(block_info[1]),
+				  block_tol_num = static_cast<size_t>(block_info[2]);
 			// 如果某个sample的block-information不正确【row_num*col_num！=tol_num】，则错误数+1，跳过这个sample
 			if (block_tol_num != block_row_num * block_col_num) {
 				KALDI_WARN << "Block rows number * cols number not equal to total number, sample name:" << key
