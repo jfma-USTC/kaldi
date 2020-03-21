@@ -282,6 +282,9 @@ namespace kaldi {
 		//返回由phone和hmm_state指定的trans_state
 		int32 PairToState(int32 phone, int32 hmm_state) const;
 
+		//返回由this_state指向next_state的trans_id，这里的state都是trans_state
+		int32 StatePairToTransitionId_TopDown(int32 this_state, int32 next_state) const;
+		int32 StatePairToTransitionId_LeftRight(int32 this_state, int32 next_state) const;
 
 	private:
 		void MleUpdateShared_TopDown(const Vector<double> &stats,

@@ -1499,4 +1499,61 @@ namespace kaldi {
 		return phone2tuples_index_[phone] + 1 + hmm_state;
 	}
 
+	// 返回从this_state指向next_state的转移弧trans_id，若不存在这样的转移弧则返回-1
+	// 一般情况this_state和next_state都应该是某个trans_state,next_state为0意味着下一状态应该是结束态；
+	int32 StatePairToTransitionId_TopDown(int32 this_state, int32 next_state) const {
+		KALDI_ASSERT(static_cast<size_t>(this_state) <= tuples_.size());//防止无效的this_state的出现
+		int32 this_phone = tuples_[this_state - 1].phone;//记录this_state属于哪一个音素
+		int32 this_state_hmm_state = tuples_[this_state - 1].hmm_state;//找到this_state在该音素中的hmm_state
+		int32 next_state_hmm_state;
+		//记录该音素的topology_entry，其中包含了HmmState_2D 的vector列表，最后一项为nonemitting state
+		//例如若this_phone为三状态，则entry.size()为4，hmm_state为0、1、2、3(nonemitting)
+		const HmmTopology_2D::TopologyEntry_2D &entry = topo_.TopologyForPhone(this_phone);
+		if (next_state == 0) //若next_state为零意味着下一状态应该是结束态
+			next_state_hmm_state = entry.size() - 1;
+		else {
+			KALDI_ASSERT(static_cast<size_t>(next_state) <= tuples_.size());
+			KALDI_ASSERT(this_phone == tuples_[next_state - 1].phone);//确保两个state处于同一个音素中
+			next_state_hmm_state = tuples_[next_state - 1].hmm_state;//找到next_state在该音素中的hmm_state
+		}
+		KALDI_ASSERT(this_state_hmm_state < entry.size());
+		int32 next_state_trans_index = -1;
+		// 遍历entry中属于this_state的水平转移弧列表，检查next_state是否在其中，若在则返回trans_index
+		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_top_down.size())
+			if (next_state_hmm_state == entry[this_state_hmm_state].transitions_top_down[i].first)
+				next_state_trans_index = static_cast<int32>(i);
+		if (next_state_trans_index != -1)
+			return state2id_left_right_[this_state] + next_state_trans_index;
+		else
+			return -1;
+	}
+	// 返回从this_state指向next_state的转移弧trans_id，若不存在这样的转移弧则返回-1
+	// 一般情况this_state和next_state都应该是某个trans_state,next_state为0意味着下一状态应该是结束态；
+	int32 StatePairToTransitionId_LeftRight(int32 this_state, int32 next_state) const {
+		KALDI_ASSERT(static_cast<size_t>(this_state) <= tuples_.size());//防止无效的this_state的出现
+		int32 this_phone = tuples_[this_state - 1].phone;//记录this_state属于哪一个音素
+		int32 this_state_hmm_state = tuples_[this_state - 1].hmm_state;//找到this_state在该音素中的hmm_state
+		int32 next_state_hmm_state;
+		//记录该音素的topology_entry，其中包含了HmmState_2D 的vector列表，最后一项为nonemitting state
+		//例如若this_phone为三状态，则entry.size()为4，hmm_state为0、1、2、3(nonemitting)
+		const HmmTopology_2D::TopologyEntry_2D &entry = topo_.TopologyForPhone(this_phone);
+		if (next_state == 0) //若next_state为零意味着下一状态应该是结束态
+			next_state_hmm_state = entry.size() - 1;
+		else {
+			KALDI_ASSERT(static_cast<size_t>(next_state) <= tuples_.size());
+			KALDI_ASSERT(this_phone == tuples_[next_state - 1].phone);//确保两个state处于同一个音素中
+			next_state_hmm_state = tuples_[next_state - 1].hmm_state;//找到next_state在该音素中的hmm_state
+		}
+		KALDI_ASSERT(this_state_hmm_state < entry.size());
+		int32 next_state_trans_index = -1;
+		// 遍历entry中属于this_state的水平转移弧列表，检查next_state是否在其中，若在则返回trans_index
+		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_left_right.size())
+			if (next_state_hmm_state == entry[this_state_hmm_state].transitions_left_right[i].first)
+				next_state_trans_index = static_cast<int32>(i);
+		if (next_state_trans_index != -1)
+			return state2id_left_right_[this_state] + next_state_trans_index;
+		else
+			return -1;
+	}
+
 } // End namespace kaldi
