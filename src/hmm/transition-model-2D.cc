@@ -1519,7 +1519,7 @@ namespace kaldi {
 		KALDI_ASSERT(this_state_hmm_state < entry.size());
 		int32 next_state_trans_index = -1;
 		// 遍历entry中属于this_state的水平转移弧列表，检查next_state是否在其中，若在则返回trans_index
-		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_top_down.size())
+		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_top_down.size(); i++)
 			if (next_state_hmm_state == entry[this_state_hmm_state].transitions_top_down[i].first)
 				next_state_trans_index = static_cast<int32>(i);
 		if (next_state_trans_index != -1)
@@ -1547,7 +1547,7 @@ namespace kaldi {
 		KALDI_ASSERT(this_state_hmm_state < entry.size());
 		int32 next_state_trans_index = -1;
 		// 遍历entry中属于this_state的水平转移弧列表，检查next_state是否在其中，若在则返回trans_index
-		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_left_right.size())
+		for (size_t i = 0; i < entry[this_state_hmm_state].transitions_left_right.size(); i++)
 			if (next_state_hmm_state == entry[this_state_hmm_state].transitions_left_right[i].first)
 				next_state_trans_index = static_cast<int32>(i);
 		if (next_state_trans_index != -1)
