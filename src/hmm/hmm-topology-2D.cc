@@ -143,7 +143,7 @@ namespace kaldi {
 										BaseFloat trans_prob;
 										ReadBasicType(is, binary, &dst_state);
 										ReadBasicType(is, binary, &trans_prob);
-										this_entry.back().trans_top_down.push_back(std::make_pair(dst_state, trans_prob));
+										this_entry.back().transitions_top_down.push_back(std::make_pair(dst_state, trans_prob));
 										ReadToken(is, binary, &token);
 									}
 									if (token != "</State>")
@@ -165,7 +165,7 @@ namespace kaldi {
 										ReadBasicType(is, binary, &forward_pdf_class);
 										if (this_entry.at(state).self_loop_pdf_class != forward_pdf_class) 
 											KALDI_ERR << "Phone's PdfClass don't match, LeftRight's state " << state << " has PdfClass for "
-												      << this_entry.at(state).self_pdf_class << " but Topdown's state " << state << " has PdfClass for "
+												      << this_entry.at(state).self_loop_pdf_class << " but Topdown's state " << state << " has PdfClass for "
 												      << forward_pdf_class;
 										ReadToken(is, binary, &token);
 										if (token == "<SelfLoopPdfClass>")
@@ -189,7 +189,7 @@ namespace kaldi {
 									}else {
 										if(this_entry.at(state).forward_pdf_class != forward_pdf_class)
 											KALDI_ERR << "Phone's PdfClass don't match, LeftRight's state " << state << " has PdfClass for "
-											          << this_entry.at(state).self_pdf_class << " but Topdown's state " << state << " has PdfClass for "
+											          << this_entry.at(state).self_loop_pdf_class << " but Topdown's state " << state << " has PdfClass for "
 											          << forward_pdf_class;
 									}
 
@@ -198,7 +198,7 @@ namespace kaldi {
 										BaseFloat trans_prob;
 										ReadBasicType(is, binary, &dst_state);
 										ReadBasicType(is, binary, &trans_prob);
-										this_entry.at(state).trans_top_down.push_back(std::make_pair(dst_state, trans_prob));
+										this_entry.at(state).transitions_top_down.push_back(std::make_pair(dst_state, trans_prob));
 										ReadToken(is, binary, &token);
 									}
 									if (token != "</State>")
@@ -272,7 +272,7 @@ namespace kaldi {
 										ReadBasicType(is, binary, &forward_pdf_class);
 										if (this_entry.at(state).self_loop_pdf_class != forward_pdf_class)
 											KALDI_ERR << "Phone's PdfClass don't match, TopDown's state " << state << " has PdfClass for "
-											<< this_entry.at(state).self_pdf_class << " but LeftRight's state " << state << " has PdfClass for "
+											<< this_entry.at(state).self_loop_pdf_class << " but LeftRight's state " << state << " has PdfClass for "
 											<< forward_pdf_class;
 										ReadToken(is, binary, &token);
 										if (token == "<SelfLoopPdfClass>")
@@ -298,7 +298,7 @@ namespace kaldi {
 									else {
 										if (this_entry.at(state).forward_pdf_class != forward_pdf_class)
 											KALDI_ERR << "Phone's PdfClass don't match, TopDown's state " << state << " has PdfClass for "
-											<< this_entry.at(state).self_pdf_class << " but LeftRight's state " << state << " has PdfClass for "
+											<< this_entry.at(state).self_loop_pdf_class << " but LeftRight's state " << state << " has PdfClass for "
 											<< forward_pdf_class;
 									}
 
@@ -616,7 +616,7 @@ namespace kaldi {
 		const TopologyEntry_2D &entry = TopologyForPhone(phone);
 		int32 max_pdf_class = 0;
 		for (size_t i = 0; i < entry.size(); i++) {
-			max_pdf_class = std::max(max_pdf_class, entry[i].self_pdf_class);
+			max_pdf_class = std::max(max_pdf_class, entry[i].self_loop_pdf_class);
 		}
 		return max_pdf_class + 1;
 	}
@@ -630,9 +630,9 @@ namespace kaldi {
 			std::numeric_limits<int32>::max());
 		KALDI_ASSERT(!entry.empty());
 
-		min_length[0] = (entry[0].self_pdf_class == -1 ? 0 : 1);
-		int32 num_states = min_length.size();
-		bool changed = true;
+		min_length[0] = (entry[0].self_loop_pdf_class == -1 ? 0 : 1);
+		//int32 num_states = min_length.size();
+		//bool changed = true;
 		/*
 		while (changed) {
 			changed = false;

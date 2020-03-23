@@ -28,8 +28,8 @@ namespace kaldi {
 	void TransitionModel_2D::ComputeTuples() {
 		if (IsHmm())
 			ComputeTuplesIsHmm();
-		else
-			ComputeTuplesNotHmm();
+		//else
+			//ComputeTuplesNotHmm();
 
 		// now tuples_ is populated with all possible tuples of (phone, hmm_state, pdf, self_loop_pdf).
 		std::sort(tuples_.begin(), tuples_.end());  // sort to enable reverse lookup.
@@ -39,7 +39,7 @@ namespace kaldi {
 		const std::vector<int32> &phones = topo_.GetPhones(); // 注意，这里的phones都是按升序排序好的
 		KALDI_ASSERT(!phones.empty());
 		int32 max_phone = phones.back();
-		phone2tuples_index_.Resize(max_phone + 1, -1);
+		phone2tuples_index_.resize(max_phone + 1, -1);
 		int32 pdf = 0;
 		for (size_t i = 0; i < phones.size(); i++) {
 			int32 phone = phones[i];
@@ -214,14 +214,14 @@ namespace kaldi {
 		for (int32 tstate = 1; tstate <= static_cast<int32>(tuples_.size()); tstate++) {
 			for (int32 tid = state2id_top_down_[tstate]; tid < state2id_top_down_[tstate + 1]; tid++) {
 				id2state_top_down_[tid] = tstate;
-				if (IsSelfLoop(tid))
+				if (IsSelfLoop_TopDown(tid))
 					id2pdf_id_top_down_[tid] = tuples_[tstate - 1].self_loop_pdf;
 				else
 					id2pdf_id_top_down_[tid] = tuples_[tstate - 1].forward_pdf;
 			}
 			for (int32 tid = state2id_left_right_[tstate]; tid < state2id_left_right_[tstate + 1]; tid++) {
 				id2state_left_right_[tid] = tstate;
-				if (IsSelfLoop(tid))
+				if (IsSelfLoop_LeftRight(tid))
 					id2pdf_id_left_right_[tid] = tuples_[tstate - 1].self_loop_pdf;
 				else
 					id2pdf_id_left_right_[tid] = tuples_[tstate - 1].forward_pdf;
@@ -239,7 +239,7 @@ namespace kaldi {
 			std::numeric_limits<int32>::max());
 		id2pdf_id_top_down_.resize(cur_transition_id_top_down);
 
-		int32 num_big_numbers = std::min<int32>(2000, cur_transition_id_left_right);
+		num_big_numbers = std::min<int32>(2000, cur_transition_id_left_right);
 		id2pdf_id_left_right_.resize(cur_transition_id_left_right + num_big_numbers,
 			std::numeric_limits<int32>::max());
 		id2pdf_id_left_right_.resize(cur_transition_id_left_right);
@@ -538,8 +538,8 @@ namespace kaldi {
 				non_self_loop_log_probs_top_down_(tstate) = 0.0;  // log(1.0)
 			}
 			else {
-				BaseFloat self_loop_prob = Exp(GetTransitionLogProb_TopDown(tid)),
-					non_self_loop_prob = 1.0 - self_loop_prob;
+				BaseFloat self_loop_prob = Exp(GetTransitionLogProb_TopDown(tid_top_down));
+				BaseFloat non_self_loop_prob = 1.0 - self_loop_prob;
 				if (non_self_loop_prob <= 0.0) {
 					KALDI_WARN << "ComputeDerivedOfProbs(): non-self-loop prob top2down is " << non_self_loop_prob;
 					non_self_loop_prob = 1.0e-10;  // just so we can continue...
@@ -550,8 +550,8 @@ namespace kaldi {
 				non_self_loop_log_probs_left_right_(tstate) = 0.0;  // log(1.0)
 			}
 			else {
-				BaseFloat self_loop_prob = Exp(GetTransitionLogProb_LeftRight(tid)),
-					non_self_loop_prob = 1.0 - self_loop_prob;
+				BaseFloat self_loop_prob = Exp(GetTransitionLogProb_TopDown(tid_left_right));
+				BaseFloat non_self_loop_prob = 1.0 - self_loop_prob;
 				if (non_self_loop_prob <= 0.0) {
 					KALDI_WARN << "ComputeDerivedOfProbs(): non-self-loop prob left2right is " << non_self_loop_prob;
 					non_self_loop_prob = 1.0e-10;  // just so we can continue...
@@ -608,7 +608,7 @@ namespace kaldi {
 		for (int32 i = 0; i < static_cast<int32> (tuples_.size()); i++) {
 			WriteBasicType(os, binary, tuples_[i].phone);
 			WriteBasicType(os, binary, tuples_[i].hmm_state);
-			WriteBasicType(os, binary, tuples_[i].self_pdf_class);
+			WriteBasicType(os, binary, tuples_[i].self_loop_pdf);
 			if (!is_hmm)
 			  WriteBasicType(os, binary, tuples_[i].self_loop_pdf);
 			if (!binary) os << "\n";
@@ -665,13 +665,13 @@ namespace kaldi {
 	BaseFloat TransitionModel_2D::GetTransitionLogProbIgnoringSelfLoops_TopDown(int32 trans_id) const {
 		KALDI_ASSERT(trans_id != 0);
 		KALDI_PARANOID_ASSERT(!IsSelfLoop_TopDown(trans_id));
-		return log_probs_(trans_id) - GetNonSelfLoopLogProb_TopDown(TransitionIdToTransitionState_TopDown(trans_id));
+		return log_probs_top_down_(trans_id) - GetNonSelfLoopLogProb_TopDown(TransitionIdToTransitionState_TopDown(trans_id));
 	}
 	//返回trans_id占所在trans_state概率比例的对数值（log(trans_id÷none_self_loop)），first check OK
 	BaseFloat TransitionModel_2D::GetTransitionLogProbIgnoringSelfLoops_LeftRight(int32 trans_id) const {
 		KALDI_ASSERT(trans_id != 0);
 		KALDI_PARANOID_ASSERT(!IsSelfLoop_LeftRight(trans_id));
-		return log_probs_(trans_id) - GetNonSelfLoopLogProb_LeftRight(TransitionIdToTransitionState_LeftRight(trans_id));
+		return log_probs_left_right_(trans_id) - GetNonSelfLoopLogProb_LeftRight(TransitionIdToTransitionState_LeftRight(trans_id));
 	}
 
 	// stats are counts/weights, indexed by transition-id.，first check OK
@@ -814,7 +814,7 @@ namespace kaldi {
 			return;
 		}
 		BaseFloat count_sum = 0.0, objf_impr_sum = 0.0;
-		KALDI_ASSERT(stats.Dim() == NumTransitionIds() + 1);
+		KALDI_ASSERT(stats.Dim() == NumTransitionIds_TopDown() + 1);
 		for (int32 tstate = 1; tstate <= NumTransitionStates(); tstate++) {
 			int32 n = NumTransitionIndices_TopDown(tstate);
 			KALDI_ASSERT(n >= 1);
@@ -867,7 +867,7 @@ namespace kaldi {
 			return;
 		}
 		BaseFloat count_sum = 0.0, objf_impr_sum = 0.0;
-		KALDI_ASSERT(stats.Dim() == NumTransitionIds() + 1);
+		KALDI_ASSERT(stats.Dim() == NumTransitionIds_LeftRight() + 1);
 		for (int32 tstate = 1; tstate <= NumTransitionStates(); tstate++) {
 			int32 n = NumTransitionIndices_LeftRight(tstate);
 			KALDI_ASSERT(n >= 1);
@@ -1116,7 +1116,7 @@ namespace kaldi {
 		KALDI_ASSERT(cfg.share_for_pdfs);
 
 		BaseFloat count_sum = 0.0, objf_impr_sum = 0.0;
-		KALDI_ASSERT(stats.Dim() == NumTransitionIds() + 1);
+		KALDI_ASSERT(stats.Dim() == NumTransitionIds_TopDown() + 1);
 		std::map<int32, std::set<int32> > pdf_to_tstate;
 
 		for (int32 tstate = 1; tstate <= NumTransitionStates(); tstate++) {
@@ -1202,7 +1202,7 @@ namespace kaldi {
 		KALDI_ASSERT(cfg.share_for_pdfs);
 
 		BaseFloat count_sum = 0.0, objf_impr_sum = 0.0;
-		KALDI_ASSERT(stats.Dim() == NumTransitionIds() + 1);
+		KALDI_ASSERT(stats.Dim() == NumTransitionIds_LeftRight() + 1);
 		std::map<int32, std::set<int32> > pdf_to_tstate;
 
 		for (int32 tstate = 1; tstate <= NumTransitionStates(); tstate++) {
@@ -1461,7 +1461,7 @@ namespace kaldi {
 			id2state_top_down_ == other.id2state_top_down_ &&
 			state2id_left_right_ == other.state2id_left_right_ &&
 			id2state_left_right_ == other.id2state_left_right_ &&
-			&& num_pdfs_ == other.num_pdfs_);
+			num_pdfs_ == other.num_pdfs_);
 	}
 
 	//判断trans_id指定的转移弧是否是自转弧，first check OK
@@ -1491,7 +1491,7 @@ namespace kaldi {
 
 	// Phone should be in Topology_2D phones_ list, hmm_state should be 0-based
 	// tuple_index_ is 0-based, trans-state is 1-based.
-	int32 PairToState(int32 phone, int32 hmm_state) const {
+	int32 TransitionModel_2D::PairToState(int32 phone, int32 hmm_state) const {
 		if (phone >= phone2tuples_index_.size()) 
 			KALDI_ERR << "Phone "<< phone <<" exceed the range of index_vector.";
 		if (phone2tuples_index_[phone] == -1) 
@@ -1501,7 +1501,7 @@ namespace kaldi {
 
 	// 返回从this_state指向next_state的转移弧trans_id，若不存在这样的转移弧则返回-1
 	// 一般情况this_state和next_state都应该是某个trans_state,next_state为0意味着下一状态应该是结束态；
-	int32 StatePairToTransitionId_TopDown(int32 this_state, int32 next_state) const {
+	int32 TransitionModel_2D::StatePairToTransitionId_TopDown(int32 this_state, int32 next_state) const {
 		KALDI_ASSERT(static_cast<size_t>(this_state) <= tuples_.size());//防止无效的this_state的出现
 		int32 this_phone = tuples_[this_state - 1].phone;//记录this_state属于哪一个音素
 		int32 this_state_hmm_state = tuples_[this_state - 1].hmm_state;//找到this_state在该音素中的hmm_state
@@ -1529,7 +1529,7 @@ namespace kaldi {
 	}
 	// 返回从this_state指向next_state的转移弧trans_id，若不存在这样的转移弧则返回-1
 	// 一般情况this_state和next_state都应该是某个trans_state,next_state为0意味着下一状态应该是结束态；
-	int32 StatePairToTransitionId_LeftRight(int32 this_state, int32 next_state) const {
+	int32 TransitionModel_2D::StatePairToTransitionId_LeftRight(int32 this_state, int32 next_state) const {
 		KALDI_ASSERT(static_cast<size_t>(this_state) <= tuples_.size());//防止无效的this_state的出现
 		int32 this_phone = tuples_[this_state - 1].phone;//记录this_state属于哪一个音素
 		int32 this_state_hmm_state = tuples_[this_state - 1].hmm_state;//找到this_state在该音素中的hmm_state

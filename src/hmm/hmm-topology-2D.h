@@ -156,6 +156,7 @@ namespace kaldi {
 				this->state_rows = state_rows;
 				this->state_cols = state_cols;
 			}
+			TopologyEntryShape() : state_rows(-1), state_cols(-1) { }
 		};
 
 		/// TopologyEntry is a typedef that represents the topology of
