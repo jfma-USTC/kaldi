@@ -1523,7 +1523,7 @@ namespace kaldi {
 			if (next_state_hmm_state == entry[this_state_hmm_state].transitions_top_down[i].first)
 				next_state_trans_index = static_cast<int32>(i);
 		if (next_state_trans_index != -1)
-			return state2id_left_right_[this_state] + next_state_trans_index;
+			return state2id_top_down_[this_state] + next_state_trans_index;
 		else
 			return -1;
 	}

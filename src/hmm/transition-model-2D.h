@@ -208,10 +208,10 @@ namespace kaldi {
 		const std::vector<int32> &GetPhones() const { return topo_.GetPhones(); }
 
 		// Transition-parameter-getting functions:
-		BaseFloat GetTransitionProb_TopDown(int32 trans_id_TopDown) const;
-		BaseFloat GetTransitionProb_LeftRight(int32 trans_id_LeftRight) const;
-		BaseFloat GetTransitionLogProb_TopDown(int32 trans_id_TopDown) const;
-		BaseFloat GetTransitionLogProb_LeftRight(int32 trans_id_LeftRight) const;
+		BaseFloat GetTransitionProb_TopDown(int32 trans_id) const;
+		BaseFloat GetTransitionProb_LeftRight(int32 trans_id) const;
+		BaseFloat GetTransitionLogProb_TopDown(int32 trans_id) const;
+		BaseFloat GetTransitionLogProb_LeftRight(int32 trans_id) const;
 
 		// The following functions are more specialized functions for getting
 		// transition probabilities, that are provided for convenience.
@@ -221,8 +221,8 @@ namespace kaldi {
 		/// will crash if called on a self-loop.  Specifically:
 		/// for non-self-loops it returns the log of (that prob divided by (1 minus
 		/// self-loop-prob-for-that-state)).
-		BaseFloat GetTransitionLogProbIgnoringSelfLoops_TopDown(int32 trans_id_TopDown) const;
-		BaseFloat GetTransitionLogProbIgnoringSelfLoops_LeftRight(int32 trans_id_LeftRight) const;
+		BaseFloat GetTransitionLogProbIgnoringSelfLoops_TopDown(int32 trans_id) const;
+		BaseFloat GetTransitionLogProbIgnoringSelfLoops_LeftRight(int32 trans_id) const;
 
 		/// Returns the log-prob of the non-self-loop probability
 		/// mass for this transition state. (you can get the self-loop prob, if a self-loop
